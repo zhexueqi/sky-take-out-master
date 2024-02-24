@@ -29,5 +29,11 @@ public interface EmployeeMapper {
     /*
     * 分页查询员工数据
     * */
-    Page pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+    Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    /*
+    * 更新员工数据
+    * */
+    void update(Employee.EmployeeBuilder employee);
+
 }

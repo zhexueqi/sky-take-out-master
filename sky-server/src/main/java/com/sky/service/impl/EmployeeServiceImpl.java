@@ -109,5 +109,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(total,result);
     }
 
+    @Override
+    public void StartOrStop(Integer status, Long id) {
+        //更新员工状态
+        Employee.EmployeeBuilder employee = Employee
+                                            .builder()
+                                            .id(id)
+                                            .status(status);
+        System.out.println(employee);
+        employeeMapper.update(employee);
+    }
+
 
 }
