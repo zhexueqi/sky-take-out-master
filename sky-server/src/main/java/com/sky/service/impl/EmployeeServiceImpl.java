@@ -80,17 +80,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setStatus(StatusConstant.ENABLE);
 
         //设置当前时间为创建时间
-        employee.setCreateTime(LocalDateTime.now());
+        //employee.setCreateTime(LocalDateTime.now());
 
         //设置当前时间为更新时间
-        employee.setUpdateTime(LocalDateTime.now());
+        //employee.setUpdateTime(LocalDateTime.now());
 
         //设置默认密码
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
 
         //设置当前记录创建人id和修改人id
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+        //employee.setCreateUser(BaseContext.getCurrentId());
+        //employee.setUpdateUser(BaseContext.getCurrentId());
         //TODO后期需要修改为当前登录用户id
         employeeMapper.insert(employee);
     }
@@ -135,9 +135,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 使用BeanUtils工具类将employeeDTO对象的属性复制到employee对象中
         BeanUtils.copyProperties(employeeDTO,employee);
         // 设置employee对象的更新时间为当前时间
-        employee.setUpdateTime(LocalDateTime.now());
+        //employee.setUpdateTime(LocalDateTime.now());
         // 设置employee对象的更新用户为当前用户
-        employee.setUpdateUser(BaseContext.getCurrentId());
+        //employee.setUpdateUser(BaseContext.getCurrentId());
         System.out.println(employee);
         // 调用employeeMapper的update方法将employee对象更新到数据库中
         employeeMapper.update(employee);
