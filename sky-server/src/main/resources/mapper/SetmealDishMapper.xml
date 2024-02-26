@@ -8,4 +8,11 @@
         select setmeal_id from setmeal_dish where dish_id in
                                             <foreach collection="ids" item="id" separator="," open="(" close=")"> #{id}</foreach>
     </select>
+    <select id="getDishBySetmealId" resultType="setmealDish">
+        select * from setmeal_dish where setmeal_id = #{setmealId}
+    </select>
+    <insert id="insertBatch">
+        insert into setmeal_dish (setmeal_id, dish_id, copies,name) values
+            <foreach collection="setmealDishes" item="setmealDish" separator="," > (#{setmealDish.setmealId}, #{setmealDish.dishId}, #{setmealDish.copies}, #{setmealDish.name})</foreach>
+    </insert>
 </mapper>
