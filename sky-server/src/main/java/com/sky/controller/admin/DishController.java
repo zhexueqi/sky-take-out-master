@@ -93,4 +93,17 @@ public class DishController {
         List<Dish> dish = dishService.list(categoryId);
         return Result.success(dish);
     }
+
+    /**
+    * 修改菜品状态
+    *
+    * */
+    @PostMapping("/status/{status}")
+    @ApiOperation("修改菜品状态")
+    public Result startOrStop(@PathVariable Integer status,Long id){
+        log.info("修改菜品状态:{}",id);
+        dishService.startOrStop(status,id);
+        log.info("修改菜品状态成功");
+        return Result.success();
+    }
 }

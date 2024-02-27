@@ -9,10 +9,12 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,6 +44,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+
+    @Autowired
+    private SetmealMapper setmealMapper;
 
     @Transactional
     public void saveWithFlavor(DishDTO dishDTO) {
@@ -149,4 +155,56 @@ public class DishServiceImpl implements DishService {
     }
 
 
+
+    /**
+     * 条件查询菜品和口味
+     * @param dish
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishList = dishMapper.list(dish);
+
+        List<DishVO> dishVOList = new ArrayList<>();
+
+        for (Dish d : dishList) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d,dishVO);
+
+            //根据菜品id查询对应的口味
+            List<DishFlavor> flavors = dishFlavorMapper.getById(d.getId());
+
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+
+        return dishVOList;
+    }
+
+    /*
+    * 修改菜品状态
+    *
+    * */
+    public void startOrStop(Integer status, Long id) {
+        //构造dish对象
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+
+        dishMapper.update(dish);
+
+        //如果是停售操作，需要把含有该菜品的套餐也一并停售
+        if (status == StatusConstant.DISABLE){
+            List<Long> ids = new ArrayList<>();
+            ids.add(id);
+            List<Long> setmealids = setmealDishMapper.getSetmealByDishId(ids);
+            if (setmealids != null && setmealids.size()>0){
+                //停售套餐
+                for (Long setmealid : setmealids) {
+                    Setmeal setmeal1 = Setmeal.builder().id(setmealid).status(StatusConstant.DISABLE).build();
+                    setmealMapper.update(setmeal1);
+                }
+            }
+        }
+    }
 }
