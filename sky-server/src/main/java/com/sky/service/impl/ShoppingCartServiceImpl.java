@@ -83,10 +83,48 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public List<ShoppingCart> showShoppingCart() {
+        //获取当前用户ID
         Long userId = BaseContext.getCurrentId();
+        //构建ShoppingCart对象
         ShoppingCart cart = ShoppingCart.builder()
                 .userId(userId).build();
+        //查看购物车
         List<ShoppingCart> list = shoppingCartMapper.list(cart);
         return list;
+    }
+
+    @Override
+    public void cleanShoppingCart() {
+        //获取当前用户ID
+        Long userId = BaseContext.getCurrentId();
+        //构建ShoppingCart对象
+        ShoppingCart cart = ShoppingCart.builder()
+                .userId(userId).build();
+        //根据ID清空购物车
+        shoppingCartMapper.deleteByUserId(cart);
+    }
+
+    @Override
+    public void sub(ShoppingCartDTO shoppingCartDTO) {
+        //获取当前用户ID
+        Long userId = BaseContext.getCurrentId();
+        //构建ShoppingCart对象
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO,shoppingCart);
+        shoppingCart.setUserId(userId);
+
+        //因为可能userId一样，然后dishId一样的话，就要去对比口味了，所以这里先动态查询
+        List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
+        if (list.size() > 0 &&list !=null){
+            ShoppingCart cart = list.get(0);
+            if (cart.getNumber() == 1){
+                //如果数量为1，则删除
+                shoppingCartMapper.deleteByUserId(shoppingCart);
+            }else {
+                //如果数列量大于1，则数量-1
+                cart.setNumber(cart.getNumber() - 1);
+                shoppingCartMapper.update(cart);
+            }
+        }
     }
 }
