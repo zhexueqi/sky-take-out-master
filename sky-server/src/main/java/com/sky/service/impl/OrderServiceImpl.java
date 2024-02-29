@@ -23,6 +23,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +69,9 @@ public class OrderServiceImpl implements OrderService {
 
 
     public static final String url = "https://api.map.baidu.com/geocoding/v3";
+
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 提交订单
@@ -149,6 +154,11 @@ public class OrderServiceImpl implements OrderService {
         Long userId = BaseContext.getCurrentId();
         User user = userMapper.getById(userId);
 
+        //模拟支付完成
+        voidAndSend(ordersPaymentDTO,1);
+
+
+
         //调用微信支付接口，生成预支付交易单
         JSONObject jsonObject = weChatPayUtil.pay(
                 ordersPaymentDTO.getOrderNumber(), //商户订单号
@@ -167,6 +177,31 @@ public class OrderServiceImpl implements OrderService {
 
         return vo;
     }
+
+    //提取语音播报方法
+    private void voidAndSend(OrdersPaymentDTO ordersPaymentDTO,Integer type) throws Exception{
+        //这里是为了模拟支付完之后有语音播报
+        Orders ordersDB = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
+
+        Orders orders = Orders.builder()
+                .id(ordersDB.getId())
+                .status(Orders.TO_BE_CONFIRMED)
+                .payStatus(Orders.PAID)
+                .checkoutTime(LocalDateTime.now())
+                .build();
+
+        orderMapper.update(orders);
+
+        Map map = new HashMap();
+        map.put("type",type); //1为订单提醒，2为催单
+        map.put("orderId",orders.getId());
+        map.put("content","订单号:"+ordersDB.getNumber());
+        String json = JSON.toJSONString(map);
+
+        webSocketServer.sendToAllClient(json);
+    }
+
+
 
     /**
      * 支付成功，修改订单状态
@@ -192,6 +227,14 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        Map map = new HashMap();
+        map.put("type",1); //1为订单提醒，2为催单
+        map.put("orderId",orders.getId());
+        map.put("content","订单号:"+outTradeNo);
+        String json = JSON.toJSONString(map);
+
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
@@ -399,6 +442,47 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CANCELLED);
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
+    }
+
+    /**
+     * 后台取消订单
+     * @param orders
+     */
+    public void adminCancel(Orders orders) throws Exception {
+        Orders ordersDB = orderMapper.getById(orders.getId());
+        Integer payStatus = ordersDB.getPayStatus();
+        if (payStatus == Orders.PAID) {
+            //用户已支付，需要退款
+//            String refund = weChatPayUtil.refund(
+//                    ordersDB.getNumber(),
+//                    ordersDB.getNumber(),
+//                    new BigDecimal(0.01),
+//                    new BigDecimal(0.01));
+//            log.info("申请退款：{}", refund);
+            log.info("后台取消订单");
+        }
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 用户催单
+     * @param id
+     */
+    public void reminder(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        if (ordersDB ==null || ordersDB.getStatus().equals(Orders.UN_PAID)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map map = new HashMap();
+        map.put("type",2); //1为订单提醒，2为催单
+        map.put("orderId",id);
+        map.put("content","订单号:"+ordersDB.getNumber());
+        String json = JSON.toJSONString(map);
+
+        //发送消息
+        webSocketServer.sendToAllClient(json);
     }
 
     /**

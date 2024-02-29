@@ -60,7 +60,7 @@ public class OrderController {
     @PutMapping("/cancel")
     public Result cancel(@RequestBody Orders orders) throws Exception {
         log.info("取消订单：{}",orders);
-        orderService.rejection(orders);
+        orderService.adminCancel(orders);
         return Result.success();
     }
 

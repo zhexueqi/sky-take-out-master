@@ -52,4 +52,8 @@ public interface OrderService {
     void delivery(Long id);
 
     void complete(Long id);
+
+    void adminCancel(Orders orders) throws Exception;
+
+    void reminder(Long id);
 }
