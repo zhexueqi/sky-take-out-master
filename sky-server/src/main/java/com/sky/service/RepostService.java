@@ -1,6 +1,8 @@
 package com.sky.service;
 
 
+import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 
@@ -29,4 +31,13 @@ public interface RepostService {
      */
     UserReportVO getUserStatistics(LocalDate begin, LocalDate end);
 
+    /**
+     * 统计时间段内每天的订单数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    OrderReportVO getOrdersStatistics(LocalDate begin, LocalDate end);
+
+    SalesTop10ReportVO getTop10SalesStatistics(LocalDate begin, LocalDate end);
 }

@@ -3,6 +3,8 @@ package com.sky.controller.admin;
 
 import com.sky.result.Result;
 import com.sky.service.RepostService;
+import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import io.swagger.annotations.Api;
@@ -48,5 +50,23 @@ public class ReportController {
         log.info("用户数据统计：{}，{}",begin,end);
         UserReportVO userReportVO = repostService.getUserStatistics(begin,end);
         return Result.success(userReportVO);
+    }
+
+    @GetMapping("/ordersStatistics")
+    @ApiOperation("订单数据统计")
+    public Result<OrderReportVO> ordersStatistics(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+                                                  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
+        log.info("订单数据统计：{}，{}",begin,end);
+        OrderReportVO orderReportVO = repostService.getOrdersStatistics(begin,end);
+        return Result.success(orderReportVO);
+    }
+
+
+    @GetMapping("/top10")
+    @ApiOperation("销售前10名数据统计")
+    public Result<SalesTop10ReportVO> top10SalesStatistics(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+                                                           @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
+        SalesTop10ReportVO salesTop10ReportVO = repostService.getTop10SalesStatistics(begin,end);
+        return Result.success(salesTop10ReportVO);
     }
 }
