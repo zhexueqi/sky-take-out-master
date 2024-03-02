@@ -10,6 +10,7 @@ import com.sky.vo.SetmealVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhexueqi
@@ -46,4 +47,5 @@ public interface SetmealService {
     List<DishItemVO> getDishItemById(Long id);
 
     void deleteBatch(List<Long> ids);
+
 }
